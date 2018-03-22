@@ -3,19 +3,24 @@ package main
 import (
 	"errors"
 	"fmt"
+	"image/color"
 	_ "image/jpeg"
 	"log"
 	"math/cmplx"
 	"math/rand"
 	"time"
 
+	"github.com/ei1chi/tendon"
 	et "github.com/hajimehoshi/ebiten"
 	"github.com/hajimehoshi/ebiten/ebitenutil"
+	"golang.org/x/image/font"
 )
 
 var (
 	ErrSuccess = errors.New("successfully finished")
 	bgImage    *et.Image
+	mplus24    font.Face
+	gaugeText  *tendon.Text
 )
 
 const (
@@ -47,6 +52,15 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	// フォント読み込み
+	mplusFont, err := tendon.NewFont("resources/mplus-subset.ttf")
+	if err != nil {
+		panic(err)
+	}
+	mplus24 = tendon.NewFontFace(mplusFont, 24)
+
+	gaugeText = tendon.NewText(mplus24, color.RGBA{0, 0, 0, 255}, "尊みゲージ")
 
 	// Run
 	s := getScale()
