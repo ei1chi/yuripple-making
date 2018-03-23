@@ -66,3 +66,8 @@ func processCharas() {
 		c.update()
 	}
 }
+
+func catch(idx int) {
+	catched = charas[idx]
+	charas[idx] = nil
+}

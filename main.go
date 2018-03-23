@@ -100,8 +100,10 @@ func update(screen *et.Image) error {
 func sweepAll() {
 	next := charas[:0]
 	for _, c := range charas {
-		if !c.isDead {
-			next = append(next, c)
+		if c != nil {
+			if !c.isDead {
+				next = append(next, c)
+			}
 		}
 	}
 	charas = next
