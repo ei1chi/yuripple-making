@@ -6,11 +6,12 @@ import (
 	"image/color"
 	_ "image/jpeg"
 	"log"
+	"math"
 	"math/cmplx"
 	"math/rand"
 	"time"
 
-	"github.com/ei1chi/tendon"
+	td "github.com/ei1chi/tendon"
 	et "github.com/hajimehoshi/ebiten"
 	"github.com/hajimehoshi/ebiten/ebitenutil"
 	"golang.org/x/image/font"
@@ -20,15 +21,33 @@ var (
 	ErrSuccess = errors.New("successfully finished")
 	bgImage    *et.Image
 	mplus24    font.Face
-	gaugeText  *tendon.Text
+	gaugeText  *td.Text
+	score      int
 )
 
 const (
-	around = 4.0 // 4 phases
+	around       = 4.0 // 4 phases
+	screenWidth  = 480.0
+	screenHeight = 640.0
 )
 
 func powi(angle float64) complex128 {
 	return cmplx.Pow(1i, complex(angle, 0))
+}
+
+func absSq(c complex128) float64 {
+	return math.Pow(real(c), 2) + math.Pow(imag(c), 2)
+}
+
+func isOutOfScreen(pos complex128, margin float64) bool {
+	x, y := real(pos), imag(pos)
+	if x < -margin || screenWidth+margin < x {
+		return true
+	}
+	if y < -margin || screenHeight+margin < y {
+		return true
+	}
+	return false
 }
 
 func init() {
@@ -54,17 +73,25 @@ func main() {
 	}
 
 	// フォント読み込み
-	mplusFont, err := tendon.NewFont("resources/mplus-subset.ttf")
+	mplusFont, err := td.NewFont("resources/mplus-subset.ttf")
 	if err != nil {
 		panic(err)
 	}
-	mplus24 = tendon.NewFontFace(mplusFont, 24)
+	mplus24 = td.NewFontFace(mplusFont, 24)
 
-	gaugeText = tendon.NewText(mplus24, color.RGBA{0, 0, 0, 255}, "尊みゲージ")
+	gaugeText = td.NewText(mplus24, color.RGBA{0, 0, 0, 255}, "尊みゲージ")
 
 	// Run
-	s := getScale()
-	err = et.Run(update, 480, 640, s, "百合っぷるメイキング")
+	w, h, err := td.GetDeviceSize()
+	s := 1.0
+	if err != nil {
+		s, sh := w/screenWidth, h/screenHeight
+		if s < sh {
+			s = sh
+		}
+	}
+
+	err = et.Run(update, screenWidth, screenHeight, s, "百合っぷるメイキング")
 	if err != nil && err != ErrSuccess {
 		log.Fatal(err)
 	}
@@ -72,19 +99,14 @@ func main() {
 
 func update(screen *et.Image) error {
 
-	updateInput()
+	td.UpdateInput()
 	processCharas()
-	//collisionAll()
-	drawAll(screen)
 	sweepAll()
+	collisionAll()
+	drawGame(screen)
 
 	// 終了判定
 	quit := et.IsKeyPressed(et.KeyQ)
-	if (480-32) < cursorX && cursorY < 32 {
-		if pressed {
-			quit = true
-		}
-	}
 	if quit {
 		return ErrSuccess
 	}
@@ -92,7 +114,8 @@ func update(screen *et.Image) error {
 	// FPS
 	str := "FPS: %f\n"
 	str += "charas : %d\n"
-	ebitenutil.DebugPrint(screen, fmt.Sprintf(str, et.CurrentFPS(), len(charas)))
+	str += "score : %d\n"
+	ebitenutil.DebugPrint(screen, fmt.Sprintf(str, et.CurrentFPS(), len(charas), score))
 
 	return nil
 }
