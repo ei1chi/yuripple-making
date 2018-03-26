@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	_ "image/jpeg"
 	"log"
 	"math"
@@ -13,15 +12,12 @@ import (
 	td "github.com/ei1chi/tendon"
 	et "github.com/hajimehoshi/ebiten"
 	"github.com/hajimehoshi/ebiten/ebitenutil"
-	"golang.org/x/image/font"
+
+	"github.com/ei1chi/yuripple-making/game"
 )
 
 var (
 	ErrSuccess = errors.New("successfully finished")
-	atlas      *td.Atlas
-	bgImage    *et.Image
-	mplus24    font.Face
-	gaugeText  *td.Text
 	score      int
 )
 
@@ -50,12 +46,9 @@ func isOutOfScreen(pos complex128, margin float64) bool {
 	return false
 }
 
-func init() {
-	rand.Seed(time.Now().UnixNano())
-}
-
 func main() {
 
+	rand.Seed(time.Now().UnixNano())
 	var err error
 
 	// 画像読み込み
@@ -95,41 +88,29 @@ func main() {
 		}
 	}
 
+	// Create Scene
+	curScene = game.CreateScene()
 	err = et.Run(update, screenWidth, screenHeight, s, "百合っぷるメイキング")
 	if err != nil && err != ErrSuccess {
 		log.Fatal(err)
 	}
 }
 
-func update(screen *et.Image) error {
-
-	td.UpdateInput()
-	processCharas()
-	sweepAll()
-	collisionAll()
-	drawGame(screen)
-
-	// 終了判定
-	quit := et.IsKeyPressed(et.KeyQ)
-	if quit {
-		return ErrSuccess
-	}
-
-	// FPS
-	str := "FPS: %f\n"
-	ebitenutil.DebugPrint(screen, fmt.Sprintf(str, et.CurrentFPS()))
-
-	return nil
+type Scene interface {
+	update(*et.Image) (Scene, error)
 }
 
-func sweepAll() {
-	next := charas[:0]
-	for _, c := range charas {
-		if c != nil {
-			if !c.isDead {
-				next = append(next, c)
-			}
+var curScene Scene
+
+func update(screen *et.Image) error {
+	for {
+		td.UpdateInput()
+		next, err := curScene.update(screen)
+		if err != nil {
+			return err
+		}
+		if next != curScene {
+			curScene = next
 		}
 	}
-	charas = next
 }
