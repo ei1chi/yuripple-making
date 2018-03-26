@@ -19,6 +19,7 @@ import (
 
 var (
 	ErrSuccess = errors.New("successfully finished")
+	atlas      *td.Atlas
 	bgImage    *et.Image
 	mplus24    font.Face
 	gaugeText  *td.Text
@@ -56,7 +57,14 @@ func init() {
 
 func main() {
 
+	var err error
+
 	// 画像読み込み
+	atlas, err = td.NewAtlas("resources/atlas")
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	loadSprites([]string{
 		"nonke",
 		"neco",
@@ -65,17 +73,16 @@ func main() {
 		"riba_tachi",
 		"heart",
 	})
-	var err error
 	bgPath := "resources/yuri_bg.jpg"
 	bgImage, _, err = ebitenutil.NewImageFromFile(bgPath, et.FilterDefault)
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 
 	// フォント読み込み
 	mplusFont, err := td.NewFont("resources/mplus-subset.ttf")
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 	mplus24 = td.NewFontFace(mplusFont, 24)
 
