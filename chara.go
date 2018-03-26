@@ -81,7 +81,7 @@ func processCharas() {
 	half := around / 2
 	spd := complex(3, 0)
 
-	interval := 70
+	interval := 40
 	count += 1
 	if count%interval == 0 {
 		dir := base + rng*rand.Float64()

@@ -3,7 +3,6 @@ package main
 import (
 	"errors"
 	"fmt"
-	"image/color"
 	_ "image/jpeg"
 	"log"
 	"math"
@@ -86,8 +85,6 @@ func main() {
 	}
 	mplus24 = td.NewFontFace(mplusFont, 24)
 
-	gaugeText = td.NewText(mplus24, color.RGBA{0, 0, 0, 255}, "尊みゲージ")
-
 	// Run
 	w, h, err := td.GetDeviceSize()
 	s := 1.0
@@ -120,9 +117,7 @@ func update(screen *et.Image) error {
 
 	// FPS
 	str := "FPS: %f\n"
-	str += "charas : %d\n"
-	str += "score : %d\n"
-	ebitenutil.DebugPrint(screen, fmt.Sprintf(str, et.CurrentFPS(), len(charas), score))
+	ebitenutil.DebugPrint(screen, fmt.Sprintf(str, et.CurrentFPS()))
 
 	return nil
 }
