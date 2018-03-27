@@ -97,20 +97,41 @@ func main() {
 }
 
 type Scene interface {
+	load()
 	update(*et.Image) (Scene, error)
 }
 
-var curScene Scene
+var (
+	curScene, nextScene Scene
+	task                = make(chan bool, 1)
+)
 
 func update(screen *et.Image) error {
-	for {
-		td.UpdateInput()
-		next, err := curScene.update(screen)
-		if err != nil {
-			return err
+
+	td.UpdateInput()
+	next, err = curScene.update(screen, loading)
+
+	if err != nil {
+		if err == ErrSuccess {
+			if nextScene == nil {
+				return ErrSuccess // 終了
+			}
+			curScene = nextScene
 		}
-		if next != curScene {
-			curScene = next
+		return err
+	}
+
+	// 次のシーンを開始したい
+	if next != nil {
+		nextScene = next
+		select {
+		case task <- true: // タスクが空いている
+			go func() {
+				nextScene.load()
+				<-task
+			}()
+		default:
 		}
 	}
+
 }

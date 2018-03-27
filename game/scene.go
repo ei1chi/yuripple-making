@@ -3,6 +3,7 @@ package game
 import (
 	"fmt"
 
+	td "github.com/ei1chi/tendon"
 	et "github.com/hajimehoshi/ebiten"
 	"github.com/hajimehoshi/ebiten/ebitenutil"
 	"golang.org/x/image/font"
@@ -10,23 +11,44 @@ import (
 	"github.com/ei1chi/yuripple-making/ending"
 )
 
-type GameScene struct {
+type Scene struct {
+	state     *td.Stm
 	atlas     *td.Atlas
 	bgImage   *et.Image
 	mplus24   font.Face
 	gaugeText *td.Text
+
+	charas []*Chara
 }
+
+type sceneState = int
+
+const (
+	playing sceneState = iota
+	dying
+)
 
 func CreateScene() Scene {
-	return &GameScene{}
+	return &Scene{}
 }
 
-func (s *GameScene) update(screen *et.Image) (Scene, error) {
+// load is invoked asynchronously
+func (s *Scene) load() {
+	s.atlas
+}
+
+func (s *Scene) update(screen *et.Image) (Scene, error) {
+
+	switch s.state.Get() {
+	case playing:
+	case ending:
+		// do nothing
+	}
 
 	s.processCharas()
 	s.sweepAll()
 	s.collisionAll()
-	s.draw(screen)
+	s.drawAll(screen)
 
 	// 終了判定
 	quit := et.IsKeyPressed(et.KeyQ)
@@ -41,7 +63,7 @@ func (s *GameScene) update(screen *et.Image) (Scene, error) {
 	return nil, nil
 }
 
-func (s *GameScene) sweepAll() {
+func (s *Scene) sweepAll() {
 	next := charas[:0]
 	for _, c := range charas {
 		if c != nil {
