@@ -96,14 +96,8 @@ func main() {
 	}
 }
 
-type Scene interface {
-	load()
-	update(*et.Image) (Scene, error)
-}
-
 var (
-	curScene, nextScene Scene
-	task                = make(chan bool, 1)
+	scene td.Scene
 )
 
 func update(screen *et.Image) error {
@@ -112,26 +106,12 @@ func update(screen *et.Image) error {
 	next, err = curScene.update(screen, loading)
 
 	if err != nil {
-		if err == ErrSuccess {
-			if nextScene == nil {
-				return ErrSuccess // 終了
-			}
-			curScene = nextScene
-		}
 		return err
 	}
 
 	// 次のシーンを開始したい
 	if next != nil {
-		nextScene = next
-		select {
-		case task <- true: // タスクが空いている
-			go func() {
-				nextScene.load()
-				<-task
-			}()
-		default:
-		}
+		scene = next
 	}
 
 }

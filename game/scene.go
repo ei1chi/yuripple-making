@@ -12,6 +12,7 @@ import (
 )
 
 type Scene struct {
+	td.SceneBase
 	state     *td.Stm
 	atlas     *td.Atlas
 	bgImage   *et.Image
@@ -42,7 +43,9 @@ func (s *Scene) update(screen *et.Image) (Scene, error) {
 	switch s.state.Get() {
 	case playing:
 	case ending:
-		// do nothing
+		if s.HasSlaveLoaded() && s.state.Elapsed() > 30 {
+			return s.Slave, nil
+		}
 	}
 
 	s.processCharas()
@@ -73,4 +76,10 @@ func (s *Scene) sweepAll() {
 		}
 	}
 	charas = next
+}
+
+func (s *Scene) toEnding() {
+	s.state.Transition(ending)
+	s.Slave = &epilogue.Scene{}
+	s.StartSlaveLoading() // async
 }
