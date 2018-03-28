@@ -96,22 +96,26 @@ func main() {
 	}
 }
 
-var (
-	scene td.Scene
-)
+type RootScene struct {
+	td.SceneBase
+}
 
-func update(screen *et.Image) error {
+func (s *RootScene) Load() {
+	s.Child = &prologue.Scene{}
+	s.Child.Load() // sync
+}
 
+func (s *RootScene) Update(screen *et.Image) (Scene, error) {
 	td.UpdateInput()
-	next, err = curScene.update(screen, loading)
-
+	next, err := s.Child.Update(screen)
 	if err != nil {
 		return err
 	}
-
-	// 次のシーンを開始したい
 	if next != nil {
-		scene = next
+		s.Child = next
 	}
-
 }
+
+var (
+	scene *RootScene
+)
