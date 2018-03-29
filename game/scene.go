@@ -2,6 +2,8 @@ package game
 
 import (
 	"fmt"
+	"log"
+	"sync"
 
 	td "github.com/ei1chi/tendon"
 	et "github.com/hajimehoshi/ebiten"
@@ -11,7 +13,14 @@ import (
 	"github.com/ei1chi/yuripple-making/ending"
 )
 
-type Scene struct {
+type sceneState = int
+
+const (
+	playing sceneState = iota
+	dying
+)
+
+type GameScene struct {
 	td.SceneBase
 	state     *td.Stm
 	atlas     *td.Atlas
@@ -22,20 +31,86 @@ type Scene struct {
 	charas []*Chara
 }
 
-type sceneState = int
+func (s *GameScene) Load() {
+	s.StartNextLoading(&GameOverScene{}) // 同時に読み込み始める
 
-const (
-	playing sceneState = iota
-	dying
-)
+	// 自分のリソース
+	var err error
+	s.state = &td.Stm{}
+	s.atlas, err = td.NewAtlas("resources/atlas")
+	if err != nil {
+		log.Fatal(err)
+	}
 
-func CreateScene() Scene {
-	return &Scene{}
-}
+	s.loadSprites([]string{})
+	bgPath := "resources/yuri_bg.jpg"
+	s.bgImage, _, err = ebitenutil.NewImageFromFile(bgPath, et.FilterDefault)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-// load is invoked asynchronously
-func (s *Scene) load() {
-	s.atlas
+	mplusFont, err := td.NewFont("resources/mplus-subset.ttf")
+	if err != nil {
+		log.Fatal(err)
+	}
+	s.mplus24 = td.NewFontFace(mplusFont, 24)
+
+	// next (GameOver) のロード待ち
+	for {
+		if next, _ := s.NextScene(); next != nil {
+			break
+		}
+	}
+
+	// 多数待ち（停止あり）
+	wg := sync.WaitGroup{}
+
+	s.gameOver = &GameOverScene{}
+	wg.Add(1)
+	go func() {
+		s.gameOver.Load()
+		wg.Done()
+	}()
+
+	wg.Wait()
+
+	// 多数待ち（無停止）
+	s.task = make(chan struct{}, 1)
+	s.task <- struct{}{}
+
+	go func() {
+		wg := &sync.WaitGroup{}
+		wg.Add(1)
+		go func() {
+			s.gameOver.Load()
+			wg.Done()
+		}()
+		wg.Wait()
+		<-s.task
+	}()
+
+	select {
+	case s.task <- struct{}{}:
+		return
+	default:
+	}
+
+	// 単数待ち（無停止）
+	s.task = make(chan struct{}, 1)
+	s.task <- struct{}{}
+
+	go func() {
+		s.next.Load()
+		<-s.task
+	}()
+
+	select {
+	case s.task <- struct{}{}:
+		return
+	default:
+		// 他のこと
+		return s.Parent.GameOver, nil
+	}
 }
 
 func (s *Scene) update(screen *et.Image) (Scene, error) {
