@@ -9,19 +9,17 @@ import (
 	et "github.com/hajimehoshi/ebiten"
 	"github.com/hajimehoshi/ebiten/ebitenutil"
 	"golang.org/x/image/font"
-
-	"github.com/ei1chi/yuripple-making/ending"
 )
 
-type sceneState = int
+type gameState = int
 
 const (
-	playing sceneState = iota
-	dying
+	playing gameState = iota
+	ending
 )
 
-type GameScene struct {
-	td.SceneBase
+type Game struct {
+	parent    *RootScene
 	state     *td.Stm
 	atlas     *td.Atlas
 	bgImage   *et.Image
@@ -31,7 +29,7 @@ type GameScene struct {
 	charas []*Chara
 }
 
-func (s *GameScene) Load() {
+func (g *Game) Load() {
 	s.StartNextLoading(&GameOverScene{}) // 同時に読み込み始める
 
 	// 自分のリソース
@@ -155,6 +153,4 @@ func (s *Scene) sweepAll() {
 
 func (s *Scene) toEnding() {
 	s.state.Transition(ending)
-	s.Slave = &epilogue.Scene{}
-	s.StartSlaveLoading() // async
 }
