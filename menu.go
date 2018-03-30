@@ -82,17 +82,17 @@ func (m *Menu) Update(sc *et.Image) error {
 func (m *Menu) CursorPos() complex128 {
 	switch m.selection {
 	case easyLevel:
-		return complex(100, 280)
+		return complex(100, 320)
 	case normalLevel:
-		return complex(100, 360)
+		return complex(100, 400)
 	case hardLevel:
-		return complex(100, 440)
+		return complex(100, 480)
 	}
 	return 0 + 1i
 }
 
 type Cursor struct {
-	pos, last, next complex128
+	pos, last, diff complex128
 	isMoving        bool
 	count           int
 }
@@ -104,7 +104,7 @@ func (c *Cursor) setPos(p complex128) {
 		return
 	}
 	c.last = c.pos
-	c.next = p
+	c.diff = p - c.last
 	c.count = cursorCountMax
 	c.isMoving = true
 }
@@ -115,12 +115,12 @@ func (c *Cursor) move() {
 	}
 	t := 1.0 - float64(c.count)/float64(cursorCountMax)
 	ratio := td.TweenRatio(0.2, 0.8, t)
-	c.pos = c.last + (c.next-c.last)*complex(ratio, 0)
+	c.pos = c.last + c.diff*complex(ratio, 0)
 	fmt.Printf("ratio = %+v\n", ratio)
 
 	c.count -= 1
 	if c.count == 0 {
-		c.pos = c.next
+		c.pos = c.last + c.diff
 		c.isMoving = false
 	}
 }
