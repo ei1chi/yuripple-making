@@ -18,7 +18,7 @@ func (p *Prologue) Load() {
 }
 
 func (p *Prologue) Update(sc *et.Image) error {
-	t := td.NewText(p.mplus48, color.Black, "幸せメイキング")
+	t := td.NewText(p.mplus48, color.Black, "タイトルロゴ")
 	t.Draw(sc, screenW/2, screenH/2, td.AlignCenter)
 	p.state.Update()
 	if p.state.Elapsed() > 40 && td.IsPressed {

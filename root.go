@@ -12,6 +12,7 @@ import (
 
 type RootScene struct {
 	pro  *Prologue
+	menu *Menu
 	game *Game
 	//epi   *Epilogue
 	state td.Stm
@@ -24,6 +25,7 @@ type RootState = int
 
 const (
 	prologue RootState = iota
+	menu
 	game
 	epilogue
 )
@@ -42,6 +44,8 @@ func (r *RootScene) Load() {
 
 	r.pro = &Prologue{}
 	r.pro.Load() // sync (blocking)
+	r.menu = &Menu{}
+	r.menu.Load() // sync (blocking)
 	r.game = &Game{}
 	r.game.Load() // sync (blocking)
 
@@ -62,6 +66,8 @@ func (r *RootScene) Update(sc *et.Image) error {
 	switch r.state.Get() {
 	case prologue:
 		err = r.updatePrologue(sc)
+	case menu:
+		err = r.updateMenu(sc)
 	case game:
 		err = r.updateGame(sc)
 	case epilogue:
@@ -74,10 +80,18 @@ func (r *RootScene) Update(sc *et.Image) error {
 func (r *RootScene) updatePrologue(sc *et.Image) error {
 	err := r.pro.Update(sc)
 	if err == ErrSuccess {
-		// To Game
-		r.state.Transition(game)
+		// To Menu
+		r.state.Transition(menu)
 		return nil
 	}
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *RootScene) updateMenu(sc *et.Image) error {
+	err := r.menu.Update(sc)
 	if err != nil {
 		return err
 	}
