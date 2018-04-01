@@ -18,7 +18,9 @@ type RootScene struct {
 	state td.Stm
 
 	mplus *truetype.Font
+	rect  td.Rect
 	bg    *et.Image
+	diff  difficulty
 }
 
 type RootState = int
@@ -49,6 +51,7 @@ func (r *RootScene) Load() {
 	r.game = &Game{}
 	r.game.Load() // sync (blocking)
 
+	r.rect = td.Rect{0, 0, screenW, screenH}
 	r.state.Transition(prologue)
 }
 
@@ -92,6 +95,10 @@ func (r *RootScene) updatePrologue(sc *et.Image) error {
 
 func (r *RootScene) updateMenu(sc *et.Image) error {
 	err := r.menu.Update(sc)
+	if err == ErrSuccess {
+		r.state.Transition(game)
+		return nil
+	}
 	if err != nil {
 		return err
 	}
