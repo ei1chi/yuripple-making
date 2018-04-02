@@ -24,14 +24,14 @@ func (p *Prologue) Load() {
 
 func (p *Prologue) Update(sc *et.Image) error {
 
-	p.title.Draw(sc, color.Black)
+	p.title.Draw(sc, 0, 0, color.Black)
 
 	p.state.Update()
 	if p.state.Elapsed() > 40 && td.IsPressed {
 		return ErrSuccess
 	}
 	a := math.Cos(float64(p.state.Elapsed())/60)*128 + 128
-	p.lead.Draw(sc, color.RGBA{0, 0, 0, uint8(a)})
+	p.lead.Draw(sc, 0, 0, color.RGBA{0, 0, 0, uint8(a)})
 
 	return nil
 }

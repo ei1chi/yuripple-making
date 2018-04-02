@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	_ "image/jpeg"
 	"log"
 
 	td "github.com/ei1chi/tendon"
@@ -11,16 +12,15 @@ import (
 )
 
 type RootScene struct {
-	pro  *Prologue
-	menu *Menu
-	game *Game
-	//epi   *Epilogue
+	pro   *Prologue
+	menu  *Menu
+	game  *Game
 	state td.Stm
 
 	mplus *truetype.Font
 	rect  td.Rect
 	bg    *et.Image
-	diff  difficulty
+	level Level
 }
 
 type RootState = int
@@ -29,10 +29,11 @@ const (
 	prologue RootState = iota
 	menu
 	game
-	epilogue
 )
 
 func (r *RootScene) Load() {
+
+	initLevels()
 
 	var err error
 	r.mplus, err = td.NewFont("resources/mplus-1p-regular.ttf")
@@ -61,9 +62,9 @@ func (r *RootScene) Update(sc *et.Image) error {
 	r.state.Update()
 
 	// Draw
+	sc.DrawImage(r.bg, nil)
 	msg := fmt.Sprintf("FPS: %f", et.CurrentFPS())
 	ebitenutil.DebugPrint(sc, msg)
-	sc.DrawImage(r.bg, nil)
 
 	var err error
 	switch r.state.Get() {
@@ -73,8 +74,6 @@ func (r *RootScene) Update(sc *et.Image) error {
 		err = r.updateMenu(sc)
 	case game:
 		err = r.updateGame(sc)
-	case epilogue:
-		err = r.updateEpilogue(sc)
 	}
 
 	return err
@@ -87,10 +86,7 @@ func (r *RootScene) updatePrologue(sc *et.Image) error {
 		r.state.Transition(menu)
 		return nil
 	}
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 func (r *RootScene) updateMenu(sc *et.Image) error {
@@ -99,28 +95,18 @@ func (r *RootScene) updateMenu(sc *et.Image) error {
 		r.state.Transition(game)
 		return nil
 	}
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 func (r *RootScene) updateGame(sc *et.Image) error {
 	err := r.game.Update(sc)
-	if err != nil {
-		return err
+	if err == ErrSuccess {
+		r.menu = &Menu{}
+		r.menu.Load()
+		r.game = &Game{}
+		r.game.Load()
+		r.state.Transition(menu) // メニューに戻る
+		return nil
 	}
-	return nil
-}
-
-func (r *RootScene) updateEpilogue(sc *et.Image) error {
-	err := r.game.Update(sc)
-	if err != nil {
-		return err
-	}
-	//err = r.epi.Update(sc)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }

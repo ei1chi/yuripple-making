@@ -7,15 +7,7 @@ import (
 	td "github.com/ei1chi/tendon"
 )
 
-type Sexual = int
-
 const (
-	nonke Sexual = iota
-	tachi
-	neco
-	ribaTachi
-	ribaNeco
-
 	grav = complex(0, 0.01)
 )
 

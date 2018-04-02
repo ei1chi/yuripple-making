@@ -1,32 +1,87 @@
 package main
 
-type difficulty = int // should be compatible with int for layouting and moving
+import "math/rand"
+
+type Sexual int
 
 const (
-	easyLevel difficulty = iota
+	nonke Sexual = iota
+	tachi
+	neco
+	ribaTachi
+	ribaNeco
+)
+
+type gameLevel int
+
+const (
+	easyLevel gameLevel = iota
 	normalLevel
 	hardLevel
 )
 
-var levels = map[difficulty]Level{}
+var levels = map[gameLevel]Level{}
 
 type Level struct {
-	interval, limit            int
-	nonke, neco, tachi, rn, rt float64
+	interval, limit int
+	name            string
+	weight          map[Sexual]int
 }
 
-func (l *Level) total() float64 {
-	return l.nonke + l.neco + l.tachi + l.rn + l.rt
+func (l *Level) lot() Sexual {
+	total := 0
+	for _, w := range l.weight {
+		total += w
+	}
+
+	val := rand.Intn(total)
+	total = 0
+	for s, w := range l.weight {
+		if total <= val && val < total+w {
+			return s
+		}
+		total += w
+	}
+	return nonke
 }
 
 func initLevels() {
 	levels[easyLevel] = Level{
 		interval: 70,
-		limit:    60 * 10,
-		nonke:    0,
-		neco:     1,
-		tachi:    1,
-		rn:       1,
-		rt:       1,
+		limit:    60 * 20,
+		name:     "EASY",
+		weight: map[Sexual]int{
+			nonke:     0,
+			tachi:     1,
+			neco:      1,
+			ribaTachi: 1,
+			ribaNeco:  1,
+		},
+	}
+
+	levels[normalLevel] = Level{
+		interval: 70,
+		limit:    60 * 30,
+		name:     "NORMAL",
+		weight: map[Sexual]int{
+			nonke:     0,
+			tachi:     1,
+			neco:      1,
+			ribaTachi: 1,
+			ribaNeco:  1,
+		},
+	}
+
+	levels[hardLevel] = Level{
+		interval: 70,
+		limit:    60 * 20,
+		name:     "HARD",
+		weight: map[Sexual]int{
+			nonke:     0,
+			tachi:     1,
+			neco:      1,
+			ribaTachi: 1,
+			ribaNeco:  1,
+		},
 	}
 }

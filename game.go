@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"image/color"
 	"log"
 
 	td "github.com/ei1chi/tendon"
@@ -13,25 +12,26 @@ type gameState = int
 
 const (
 	gamePlaying gameState = iota
-	gameFinished
+	gameResult
 )
 
 type Game struct {
-	state td.Stm
-	atlas *td.Atlas
-	//charas  []*Chara
+	state   td.Stm
+	atlas   *td.Atlas
+	sprites map[string]*td.Sprite
+	charas  []*Chara
 
-	rs struct {
-		mode, score td.Rect
-		time        []td.Rect
+	t struct {
+		mode, score, time *td.TextBox
 	}
-	ts struct {
-		mode, time, score *td.Text
+	r struct {
+		gauge td.Rect
 	}
 }
 
 func (g *Game) Load() {
 
+	font := root.mplus
 	var err error
 
 	g.atlas, err = td.NewAtlas("resources/atlas")
@@ -39,42 +39,73 @@ func (g *Game) Load() {
 		log.Fatal(err)
 	}
 
-	uir := td.Rect{5, 5, screenW - 5, screenH}.HSplit(30, 40, 40)
-	g.rs.mode = uir[0]
-	g.rs.score = uir[1].WithMargin(0, 10, 0, 10)
-	g.rs.time = uir[2].WithMargin(0, 15, 0, 15).VSplit(80)
+	g.sprites = map[string]*td.Sprite{}
+	func(s []string) {
+		for _, name := range s {
+			path := name + ".png"
+			g.sprites[name], err = g.atlas.NewSprite(path)
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
+	}([]string{
+		"neco",
+		"nonke",
+		"tachi",
+		"riba_tachi",
+		"riba_neco",
+		"heart",
+	})
 
-	g.ts.mode = td.NewText(root.mplus, 15, 5, "MODE: EASY")
-	g.ts.score = td.NewText(root.mplus, 20, 8, "score")
-	g.ts.time = td.NewText(root.mplus, 20, 8, "time")
+	ui := td.Rect{5, 5, screenW - 5, screenH}.HSplit(30, 40, 40)
+	g.t.mode = td.NewTextBox(ui[0], font, 15, 5, "")
+	g.t.score = td.NewTextBox(ui[1], font, 20, 5, "score")
 
-	//func(s []string) {
-	//	for _, path := range s {
-	//		path += ".png"
-	//		g.sprites[s], err = g.atlas.NewSprite(path)
-	//		if err != nil {
-	//			log.Fatal(err)
-	//		}
-	//	}
-	//}([]string{
-	//	"neco",
-	//	"nonke",
-	//})
+	time := ui[2].VSplit(80)
+	g.t.time = td.NewTextBox(time[0], font, 20, 5, "time")
+	g.r.gauge = time[1].WithMargin(0, 15, 0, 15)
+
 }
 
 func (g *Game) Update(sc *et.Image) error {
-	g.state.Update()
-	g.ts.mode.DrawR(sc, g.rs.mode, color.Black)
-	g.ts.score.SetText(fmt.Sprintf("score: %d", g.state.Elapsed()))
-	g.ts.score.DrawR(sc, g.rs.score, color.Black)
-	g.ts.time.DrawR(sc, g.rs.time[0], color.Black)
 
-	w := g.rs.time[1].Width() * (1.0 - float64(g.state.Elapsed())/1000)
-	h := g.rs.time[1].Height()
-	gauge, _ := et.NewImage(int(w), int(h), et.FilterDefault)
-	gauge.Fill(color.Black)
-	op := &et.DrawImageOptions{}
-	op.GeoM.Translate(g.rs.time[1].Left, g.rs.time[1].Top)
-	sc.DrawImage(gauge, op)
+	g.state.Update()
+	g.processCharas()
+	g.sweepAll()
+
+	switch g.state.Get() {
+	case gamePlaying:
+		//g.collisionAll()
+	}
+
+	g.drawAll(sc)
+
+	// 終了判定
+	if g.state.Get() == gamePlaying {
+		if g.state.Elapsed() >= levels[easyLevel].limit {
+			g.state.Transition(gameResult)
+		}
+	}
+
+	if g.state.Get() == gameResult {
+		if g.state.Elapsed() > 40 && td.IsJustPressed {
+			return ErrSuccess
+		}
+	}
+
 	return nil
+}
+
+func (g *Game) sweepAll() {
+	next := g.charas[:0]
+	for _, c := range g.charas {
+		if c != nil {
+			if !c.isDead {
+				next = append(next, c)
+			} else {
+				fmt.Println("sweepd")
+			}
+		}
+	}
+	g.charas = next
 }
