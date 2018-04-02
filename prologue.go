@@ -14,12 +14,11 @@ type Prologue struct {
 }
 
 func (p *Prologue) Load() {
-	font := root.mplus
 	rect := td.Rect{0, 0, screenW, screenH}.WithMargin(0, 100, 0, 420)
-	p.title = td.NewTextBox(rect, font, 45, 5, "タイトルロゴ")
+	p.title = td.NewTextBox(rect, root.mp45, 5, "タイトルロゴ")
 
 	rect = rect.SnapOutside(8, screenW, 40)
-	p.lead = td.NewTextBox(rect, font, 20, 5, "tap to start")
+	p.lead = td.NewTextBox(rect, root.mp20, 5, "tap to start")
 }
 
 func (p *Prologue) Update(sc *et.Image) error {

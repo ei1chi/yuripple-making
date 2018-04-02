@@ -43,5 +43,8 @@ func main() {
 }
 
 func update(screen *et.Image) error {
+	if et.IsRunningSlowly() {
+		return nil
+	}
 	return root.Update(screen)
 }

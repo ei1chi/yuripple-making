@@ -9,6 +9,7 @@ import (
 	"github.com/golang/freetype/truetype"
 	et "github.com/hajimehoshi/ebiten"
 	"github.com/hajimehoshi/ebiten/ebitenutil"
+	"golang.org/x/image/font"
 )
 
 type RootScene struct {
@@ -17,7 +18,9 @@ type RootScene struct {
 	game  *Game
 	state td.Stm
 
-	mplus *truetype.Font
+	mplus            *truetype.Font
+	mp45, mp40, mp20 font.Face
+
 	rect  td.Rect
 	bg    *et.Image
 	level Level
@@ -40,6 +43,10 @@ func (r *RootScene) Load() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	r.mp45 = td.NewFontFace(r.mplus, 45)
+	r.mp40 = td.NewFontFace(r.mplus, 40)
+	r.mp20 = td.NewFontFace(r.mplus, 20)
+
 	r.bg, _, err = ebitenutil.NewImageFromFile("resources/yuri_bg.jpg", et.FilterDefault)
 	if err != nil {
 		log.Fatal(err)
