@@ -12,16 +12,18 @@ import (
 	"golang.org/x/image/font"
 )
 
+// global resources
+var (
+	mplusFont *truetype.Font
+	mplus     map[int]font.Face
+	display   td.Rect
+)
+
 type RootScene struct {
 	pro   *Prologue
 	menu  *Menu
 	game  *Game
 	state td.Stm
-
-	mplus            *truetype.Font
-	mp45, mp40, mp20 font.Face
-
-	rect  td.Rect
 	bg    *et.Image
 	level Level
 }
@@ -37,15 +39,17 @@ const (
 func (r *RootScene) Load() {
 
 	initLevels()
+	display = td.Rect{0, 0, screenW, screenH}
 
 	var err error
-	r.mplus, err = td.NewFont("resources/mplus-1p-regular.ttf")
+	mplusFont, err = td.NewFont("resources/mplus-1p-regular.ttf")
 	if err != nil {
 		log.Fatal(err)
 	}
-	r.mp45 = td.NewFontFace(r.mplus, 45)
-	r.mp40 = td.NewFontFace(r.mplus, 40)
-	r.mp20 = td.NewFontFace(r.mplus, 20)
+	mplus = map[int]font.Face{}
+	for _, size := range []int{45, 40, 20} {
+		mplus[size] = td.NewFontFace(mplusFont, float64(size))
+	}
 
 	r.bg, _, err = ebitenutil.NewImageFromFile("resources/yuri_bg.jpg", et.FilterDefault)
 	if err != nil {
@@ -59,7 +63,6 @@ func (r *RootScene) Load() {
 	r.game = &Game{}
 	r.game.Load() // sync (blocking)
 
-	r.rect = td.Rect{0, 0, screenW, screenH}
 	r.state.Transition(prologue)
 }
 

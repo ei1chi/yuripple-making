@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"image/color"
 
 	td "github.com/ei1chi/tendon"
@@ -21,17 +20,16 @@ func (m *Menu) Load() {
 
 	halfr := td.Rect{0, 0, screenW, screenH / 2}.Shift(0, screenH/2)
 	menu := halfr.HSplit(80, 80, 80)
-	m.t.easy = td.NewTextBox(menu[0], root.mp40, 5, "EASY").Fit()
-	m.t.normal = td.NewTextBox(menu[1], root.mp40, 5, "NORMAL").Fit()
-	m.t.hard = td.NewTextBox(menu[2], root.mp40, 5, "HARD").Fit()
+	m.t.easy = td.NewTextBox(menu[0], mplus[40], 5, "EASY").Fit()
+	m.t.normal = td.NewTextBox(menu[1], mplus[40], 5, "NORMAL").Fit()
+	m.t.hard = td.NewTextBox(menu[2], mplus[40], 5, "HARD").Fit()
 
 	helpr := halfr.SnapOutside(2, screenW, 60)
-	m.t.help = td.NewTextBox(helpr, root.mp20, 5, "tap to select level")
+	m.t.help = td.NewTextBox(helpr, mplus[20], 5, "tap to select level")
 }
 
 func (m *Menu) Update(sc *et.Image) error {
 
-	fmt.Println("menu update")
 	if td.IsJustPressed {
 		m.accept = true
 	}
@@ -52,7 +50,6 @@ func (m *Menu) Update(sc *et.Image) error {
 
 	var err error
 	var b bool
-	fmt.Println("draw")
 	b = f(m.t.easy)
 	if b {
 		root.level = levels[easyLevel]

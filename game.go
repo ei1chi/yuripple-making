@@ -61,11 +61,11 @@ func (g *Game) Load() {
 	})
 
 	ui := td.Rect{5, 5, screenW - 5, screenH}.HSplit(30, 40, 40)
-	g.t.mode = td.NewTextBox(ui[0], root.mp20, 5, "")
-	g.t.score = td.NewTextBox(ui[1], root.mp20, 5, "score")
+	g.t.mode = td.NewTextBox(ui[0], mplus[20], 5, "")
+	g.t.score = td.NewTextBox(ui[1], mplus[20], 5, "score")
 
 	time := ui[2].WithMargin(0, 10, 0, 10).VSplit(80)
-	g.t.time = td.NewTextBox(time[0], root.mp20, 5, "time")
+	g.t.time = td.NewTextBox(time[0], mplus[20], 5, "time")
 	g.r.gauge = time[1].WithMargin(0, 0, 30, 0)
 
 	w, h := g.r.gauge.Width(), g.r.gauge.Height()
