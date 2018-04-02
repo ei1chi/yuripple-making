@@ -9,27 +9,29 @@ import (
 )
 
 type Prologue struct {
-	title, lead *td.Text
+	title, lead *td.TextBox
 	state       td.Stm
 }
 
 func (p *Prologue) Load() {
-	p.title = td.NewText(root.mplus, 45, 5, "百合っぷるメイキング")
-	p.lead = td.NewText(root.mplus, 20, 5, "tap to start")
+	font := root.mplus
+	rect := td.Rect{0, 0, screenW, screenH}.WithMargin(0, 100, 0, 420)
+	p.title = td.NewTextBox(rect, font, 45, 5, "タイトルロゴ")
+
+	rect = rect.SnapOutside(8, screenW, 40)
+	p.lead = td.NewTextBox(rect, font, 20, 5, "tap to start")
 }
 
 func (p *Prologue) Update(sc *et.Image) error {
 
-	rect := td.Rect{0, 0, screenW, screenH}.WithMargin(0, 100, 0, 420)
-	p.title.DrawR(sc, rect, color.Black)
+	p.title.Draw(sc, color.Black)
 
 	p.state.Update()
 	if p.state.Elapsed() > 40 && td.IsPressed {
 		return ErrSuccess
 	}
 	a := math.Cos(float64(p.state.Elapsed())/60)*128 + 128
-	rect = rect.SnapOutside(8, screenW, 40)
-	p.lead.DrawR(sc, rect, color.RGBA{0, 0, 0, uint8(a)})
+	p.lead.Draw(sc, color.RGBA{0, 0, 0, uint8(a)})
 
 	return nil
 }
