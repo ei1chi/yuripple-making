@@ -43,7 +43,7 @@ func (g *Game) drawAll(sc *et.Image) {
 		g.t.score.Draw(sc, 0, 0, color.Black)
 		g.t.time.Draw(sc, 0, 0, color.Black)
 
-		x, y := g.t.time.R.AnchorPos(6)
+		x, y := g.t.time.R.AnchorPos(3)
 		op := &et.DrawImageOptions{}
 		op.GeoM.Translate(x, y)
 		w, h := g.fullGauge.Size()
