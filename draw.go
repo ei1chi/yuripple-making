@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"image"
 	"image/color"
 
 	et "github.com/hajimehoshi/ebiten"
@@ -27,6 +28,12 @@ func (g *Game) drawAll(sc *et.Image) {
 		op.GeoM.Translate(real(c.pos), imag(c.pos))
 		sp.Draw(sc, op)
 	}
+	if g.catched != nil {
+		sp := g.sprites[table[g.catched.sexual].n]
+		op := sp.Center()
+		op.GeoM.Translate(real(g.catched.pos), imag(g.catched.pos))
+		sp.Draw(sc, op)
+	}
 
 	// draw ui
 	if g.state.Get() == gamePlaying {
@@ -36,14 +43,13 @@ func (g *Game) drawAll(sc *et.Image) {
 		g.t.score.Draw(sc, 0, 0, color.Black)
 		g.t.time.Draw(sc, 0, 0, color.Black)
 
-		r := float64(g.state.Elapsed()) / float64(root.level.limit)
-		w := g.r.gauge.Width()*(1.0-r) + 1
-		h := g.r.gauge.Height()
-		gauge, _ := et.NewImage(int(w), int(h), et.FilterDefault)
-		gauge.Fill(color.Black)
-		op := &et.DrawImageOptions{}
 		x, y := g.t.time.R.AnchorPos(6)
-		op.GeoM.Translate(x, y-h/2)
-		sc.DrawImage(gauge, op)
+		op := &et.DrawImageOptions{}
+		op.GeoM.Translate(x, y)
+		w, h := g.fullGauge.Size()
+		w -= 100 * w * g.state.Elapsed() / root.level.limit / 100
+		rc := image.Rect(0, 0, w, h)
+		op.SourceRect = &rc
+		sc.DrawImage(g.fullGauge, op)
 	}
 }

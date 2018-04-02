@@ -1,6 +1,7 @@
 package main
 
 import (
+	"math"
 	"math/rand"
 
 	td "github.com/ei1chi/tendon"
@@ -29,9 +30,43 @@ func (g *Game) processCharas() {
 		g.charas = append(g.charas, c)
 	}
 
-	// update
-	for _, c := range g.charas {
-		c.update()
+	// update CATCHED chara
+	if g.catched != nil {
+		g.catched.state.Update()
+		g.catched.vec = complex(0, 0)
+		g.catched.pos = td.CursorPos + g.offset
+	}
+
+	if g.state.Get() == gamePlaying && td.IsJustPressed {
+		// catch one & update all
+		min := math.Pow(32, 2)
+		idx := -1
+		for i, c := range g.charas {
+			c.update()
+			if c.state.Get() == judgeNil {
+				dist := td.AbsSq(c.pos - td.CursorPos)
+				if dist < min {
+					min = dist
+					idx = i
+				}
+			}
+		}
+
+		if idx != -1 {
+			g.catched = g.charas[idx]
+			g.charas[idx] = nil
+			g.offset = g.catched.pos - td.CursorPos
+		}
+	} else {
+		// update all & release one
+		for _, c := range g.charas {
+			c.update()
+		}
+
+		if g.catched != nil && !td.IsPressed {
+			g.charas = append(g.charas, g.catched)
+			g.catched = nil
+		}
 	}
 }
 
@@ -41,6 +76,7 @@ type charaState int
 
 const (
 	charaMoving charaState = iota
+	charaCatched
 	charaCoupled
 	charaMissed
 )

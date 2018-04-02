@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"image/color"
 	"log"
 
 	td "github.com/ei1chi/tendon"
@@ -16,10 +17,13 @@ const (
 )
 
 type Game struct {
-	state   td.Stm
-	atlas   *td.Atlas
-	sprites map[string]*td.Sprite
-	charas  []*Chara
+	state     td.Stm
+	atlas     *td.Atlas
+	sprites   map[string]*td.Sprite
+	charas    []*Chara
+	catched   *Chara
+	offset    complex128
+	fullGauge *et.Image
 
 	t struct {
 		mode, score, time *td.TextBox
@@ -63,8 +67,11 @@ func (g *Game) Load() {
 
 	time := ui[2].VSplit(80)
 	g.t.time = td.NewTextBox(time[0], font, 20, 5, "time")
-	g.r.gauge = time[1].WithMargin(0, 15, 0, 15)
+	g.r.gauge = time[1].WithMargin(0, 15, 30, 15)
 
+	w, h := g.r.gauge.Width(), g.r.gauge.Height()
+	g.fullGauge, _ = et.NewImage(int(w), int(h), et.FilterDefault)
+	g.fullGauge.Fill(color.Black)
 }
 
 func (g *Game) Update(sc *et.Image) error {
