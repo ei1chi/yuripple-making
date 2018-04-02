@@ -40,7 +40,7 @@ func (m *Menu) Update(sc *et.Image) error {
 
 		if t.R.Contains(td.CursorPos) {
 			c = color.Black
-			if m.accept && td.IsJustReleased {
+			if m.accept && !td.IsPressed {
 				b = true
 			}
 		}
