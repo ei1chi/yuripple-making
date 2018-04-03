@@ -18,6 +18,7 @@ const (
 
 type Game struct {
 	state     td.Stm
+	score     int
 	atlas     *td.Atlas
 	sprites   map[string]*td.Sprite
 	charas    []*Chara
@@ -81,7 +82,7 @@ func (g *Game) Update(sc *et.Image) error {
 
 	switch g.state.Get() {
 	case gamePlaying:
-		//g.collisionAll()
+		g.collisionAll()
 	}
 
 	g.drawAll(sc)

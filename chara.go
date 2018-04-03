@@ -76,7 +76,6 @@ type charaState int
 
 const (
 	charaMoving charaState = iota
-	charaCatched
 	charaCoupled
 	charaMissed
 )
@@ -107,6 +106,16 @@ func (c *Chara) update() {
 		c.vec += grav
 		c.pos += c.vec
 		if isOutOfArea(c.pos, 64) {
+			c.isDead = true
+		}
+	case charaCoupled:
+		c.pos += complex(0, -1)
+		if c.state.Elapsed() > 99 {
+			c.isDead = true
+		}
+	case charaMissed:
+		c.pos += complex(0, 1)
+		if c.state.Elapsed() > 99 {
 			c.isDead = true
 		}
 	}

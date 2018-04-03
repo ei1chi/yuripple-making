@@ -23,10 +23,22 @@ func (g *Game) drawAll(sc *et.Image) {
 
 	// draw characters
 	for _, c := range g.charas {
-		sp := g.sprites[table[c.sexual].n]
-		op := sp.Center()
-		op.GeoM.Translate(real(c.pos), imag(c.pos))
-		sp.Draw(sc, op)
+		if c.state.Get() == int(charaMoving) {
+			sp := g.sprites[table[c.sexual].n]
+			op := sp.Center()
+			op.GeoM.Translate(real(c.pos), imag(c.pos))
+			sp.Draw(sc, op)
+		}
+	}
+	// draw fading out characters
+	for _, c := range g.charas {
+		if c.state.Get() != int(charaMoving) {
+			sp := g.sprites[table[c.sexual].n]
+			op := sp.Center()
+			op.GeoM.Translate(real(c.pos), imag(c.pos))
+			op.ColorM.Translate(0, 0, 0, -float64(c.state.Elapsed())/100)
+			sp.Draw(sc, op)
+		}
 	}
 	if g.catched != nil {
 		sp := g.sprites[table[g.catched.sexual].n]
@@ -39,7 +51,7 @@ func (g *Game) drawAll(sc *et.Image) {
 	if g.state.Get() == gamePlaying {
 		g.t.mode.T.SetText(fmt.Sprintf("MODE: %s", root.level.name))
 		g.t.mode.Draw(sc, 0, 0, color.Black)
-		g.t.score.T.SetText(fmt.Sprintf("score: %d", g.state.Elapsed()))
+		g.t.score.T.SetText(fmt.Sprintf("score: %d", g.score))
 		g.t.score.Draw(sc, 0, 0, color.Black)
 		g.t.time.Draw(sc, 0, 0, color.Black)
 
